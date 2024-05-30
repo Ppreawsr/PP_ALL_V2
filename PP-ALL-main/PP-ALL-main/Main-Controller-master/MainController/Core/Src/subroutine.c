@@ -218,7 +218,7 @@ uint8_t HomeZ(){
 
 	while(HAL_GetTick() < Timeout){
 		if(getZStop() == 1){
-			HAL_Delay(50);
+			//HAL_Delay(50);
 			serviceMotor(0, 0);
 			return 0;
 		}
@@ -252,7 +252,7 @@ uint8_t pickBox(){
 		}
 	}
 
-	HAL_Delay(2000);
+	//HAL_Delay(2000);
 
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
@@ -301,7 +301,7 @@ uint8_t placeBox(){
 
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, GPIO_PIN_SET);	// Vacuum Pin จำเบอร์ไม่ได้
 
-	HAL_Delay(2000);
+	//HAL_Delay(2000);
 
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);

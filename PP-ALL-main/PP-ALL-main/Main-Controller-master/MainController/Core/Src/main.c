@@ -292,6 +292,19 @@ int main(void)
 //	  pos_err = position_goal;
 //  }
 
+  	pick[0] = 20;
+  	pick[1] = 570;
+  	pick[2] = 435;
+  	pick[3] = 317;
+  	pick[4] = 160;
+
+
+  	place[0] = 570;
+  	place[1] = 435;
+  	place[2] = 317;
+  	place[3] = 160;
+  	place[4] = 0;
+
 
   	  	  buf[0] = 3;
   		  L_State = updateLED(buf,&htim3,TIM_CHANNEL_2);
@@ -408,6 +421,8 @@ int main(void)
 	  	  	  	  	  	  	 	  }
 
 
+
+
 	  if ( joystickPayload[0] == 0x80 )
 	  {
 		  NVIC_SystemReset();
@@ -470,147 +485,12 @@ int main(void)
 	  		joystickPayload[0] = 0 ;
 	  	  		}
 
-
 	  // TODO: Test encoder QEI, remove later
 	  qeiRaw  = __HAL_TIM_GET_COUNTER(&htim2);
 	  qeifloat = (__HAL_TIM_GET_COUNTER(&htim2))*(59.19/8192);
 
 	  Modbus_Protocal_Worker();
-	  vacuum = registerFrame[0x02].U16;
-	  gripper = registerFrame[0x03].U16;
-	  registerFrame[0x04].U16 = reed;
 
-	  ///*MODBUS PART
-	  if(registerFrame[0x00].U16 != 22881){
-		  registerFrame[0x00].U16 = 22881;
-		  deb++;
-	  }
-
-
- 	  static uint16_t timestamp = 0;
- 	  //Set shelves
- 	  if(registerFrame[0x01].U16 == 1)
- 	  {
- 		  registerFrame[0x01].U16 = 0;
- 		  registerFrame[0x10].U16 = 1;
- 		  registerFrame[0x23].U16 = shelfPos[0];
- 		  registerFrame[0x24].U16 = shelfPos[1];
- 		  registerFrame[0x25].U16 = shelfPos[2];
- 		  registerFrame[0x26].U16 = shelfPos[3];
- 		  registerFrame[0x27].U16 = shelfPos[4];
- 		  //delay 2000ms
- 		  timestamp = HAL_GetTick()+2000;
- 	  }
- 	  if(HAL_GetTick() >= timestamp && (registerFrame[0x10].U16 == 1))
- 	  {
- 		  registerFrame[0x10].U16 = 0;
- 	  }
- 	  //Monkey_Home
- 	  if(registerFrame[0x01].U16 == 2)
- 	  {
- 		  registerFrame[0x01].U16 = 0;
- 		  registerFrame[0x10].U16 = 2;
- 		  setPos =  shelfPos[0];
- 	  }
- 	  //point mode
- 	  if(registerFrame[0x01].U16 == 8)
- 	  {
- 		  registerFrame[0x01].U16 = 0;
- 		  registerFrame[0x10].U16 = 16;
- 		  setPos =  registerFrame[0x30].U16;
- 	  }
- 	  //reset
- 	  if(piingpong == 1 && (registerFrame[0x10].U16 == 2 || registerFrame[0x10].U16 == 16) )//check piingpong status
- 	  {
- 		  registerFrame[0x10].U16 = 0;
- 	  }
- 	  //jog mode
- 	  if((registerFrame[0x01].U16 == 4))
- 	  {
- 		  registerFrame[0x01].U16 = 0; //reset status
-
- 	      temPick = (registerFrame[0x21].U16);
- 	      temPlace = (registerFrame[0x22].U16);
- 	      rnd = 0;
- 	      ////// Convert to string
- 	      for(uint16_t i = 10000;i>=1;i/=10)
- 	      {
- 	    	  if(temPick/i == 0 || temPick/i > 5 || temPlace/i == 0 || temPlace/i > 5) // check if 0 or > 5
- 	    	  {
- 	    		  rnd = 0;
- 	    		  break;
- 	    	  }
- 	    	  pick[rnd] = temPick/i; // use this for pick
- 	    	  place[rnd] = temPlace/i; // use this for place
- 	    	  temPick = temPick%i;
- 	    	  temPlace = temPlace%i;
- 	    	  rnd++;
- 	      }
- 	  }
- 	  else if(rnd > 0) //  run Jog
- 	  {
- 	  		if(registerFrame[0x10].U16 == 0 && rnd == 5 && gripper == 0 && reed == 1 && vacuum == 0) // first rev
- 	  		{
- 	  			(registerFrame[0x10].U16) = 4; // Z-go pick
- 	  			setPos = shelfPos[pick[5-rnd]-1];
- 	  		}
- 	  		if((piingpong && registerFrame[0x10].U16 == 8)) // prev mode: place, do pick
- 	  		{
- 	  			///////place down
-
- 	  			if(reed != 2){
- 	  				registerFrame[0x03].U16 = 1; // gripper forward
- 	  			}
- 	  			else //reached
- 	  			{
- 	  				registerFrame[0x02].U16 = 0; //vacuum off
- 	  					//Delay a few sec
- 	  				registerFrame[0x03].U16 = 0; //gripper backward
- 	  			}
- 	  			///////finish place -> move on
- 	  			if(gripper == 0 && reed == 1 && vacuum == 0)
- 	  			{
- 	  				rnd--;
- 	  				if(rnd>0)
- 	  				{
- 	  					(registerFrame[0x10].U16) = 4; // Z-go pick
- 	  					setPos = shelfPos[pick[5-rnd]-1];
- 	  				}
- 	  				else
- 	  				{
- 	  					(registerFrame[0x10].U16 = 0); // End Jogs
- 	  				}
- 	  			}
- 	  			//MoveTosetPos();
- 	  		}
- 	  		else if(piingpong && registerFrame[0x10].U16 == 4)// prev mode: pick, do place
- 	  		{
- 	  			//////pick up
- 	  			if(reed != 2)
- 	  			{
- 	  				registerFrame[0x03].U16 = 1; //gripper forward
- 	  			}
- 	  			else
- 	  			{
- 	  				registerFrame[0x02].U16 = 1; //vacuum on
- 	  				// Delay a few sec
- 	  				registerFrame[0x03].U16 = 0; //gripper backward
- 	  			}
- 	  			///////finish pick -> move on
- 	  			if(gripper == 0 && reed == 1 && vacuum == 1)
- 	  			{
- 	  				(registerFrame[0x10].U16) = 8; // Z-go place
- 	  				setPos = shelfPos[place[5-rnd]-1];
- 	  			}
- 	  		}
-
- 	  	}
-
- 	  	else if(piingpong && (registerFrame[0x10].U16 == 2 || registerFrame[0x10].U16 == 16))
- 	  	{
- 	  		//finish point & home mode
- 	  		registerFrame[0x10].U16 = 0;
- 	  	}
   }
   /* USER CODE END 3 */
 }

@@ -1,0 +1,15 @@
+vacuum
+gripper
+reed
+pick
+place
+piingpong
+flagShelf
+setPos
+linear_velocity
+linear_accel
+linear_position
+registerFrame[0x00].U16
+qeifloat
+Mode
+deb
