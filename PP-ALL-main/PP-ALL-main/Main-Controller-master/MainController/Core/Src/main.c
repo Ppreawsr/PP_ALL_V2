@@ -292,20 +292,6 @@ int main(void)
 //	  pos_err = position_goal;
 //  }
 
-  	pick[0] = 20;
-  	pick[1] = 570;
-  	pick[2] = 435;
-  	pick[3] = 317;
-  	pick[4] = 160;
-
-
-  	place[0] = 570;
-  	place[1] = 435;
-  	place[2] = 317;
-  	place[3] = 160;
-  	place[4] = 0;
-
-
   	  	  buf[0] = 3;
   		  L_State = updateLED(buf,&htim3,TIM_CHANNEL_2);
   		  uint8_t result = HomeZ();
@@ -1129,26 +1115,25 @@ void generate_trapezoidal_velocity_profile(double t2, double x2) {
 
 void generate_Velocity()
 {
-
 		t = (time_op) * i / num_points;
-				        if (t < t_acc) {
-				          velocity = (Peak * (t / t_acc));
-				        } else if (t >= t_acc && t <+ t_acc + t_const) {
-				          velocity = Peak;
-				        } else {
-				          velocity = (Peak * ((time_op - t) / t_acc));
-				        }
-				        position += velocity/1000.0;
+		if (t < t_acc) {
+			velocity = (Peak * (t / t_acc));
+		} else if (t >= t_acc && t <+ t_acc + t_const) {
+			velocity = Peak;
+		} else {
+			velocity = (Peak * ((time_op - t) / t_acc));
+		}
+		position += velocity/1000.0;
 
-				        position_now = position;
+		position_now = position;
 
-				        Vfeedback = arm_pid_f32(&PID, position_now - qeifloat);
+		Vfeedback = arm_pid_f32(&PID, position_now - qeifloat);
 
 
 
-				        BTempV = Vfeedback;
+		BTempV = Vfeedback;
 
-				        VInM = Vfeedback * (24.0/65535.0);
+		VInM = Vfeedback * (24.0/65535.0);
 
 		//		        pwmM = Vfeedback * (65535.0/24.0);
 
@@ -1158,36 +1143,37 @@ void generate_Velocity()
 		//		        	Vfeedback = 9830;
 		//		        }
 
-				        zStop = 0;
-				        pwmM = Vfeedback * (65535.0/24.0);
+		zStop = 0;
+		pwmM = Vfeedback * (65535.0/24.0);
 
-				        if(Vfeedback >= 0)
-				        {
-				        	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwmM);
-				        	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
+		if(Vfeedback >= 0)
+		{
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwmM);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
 
-				        }
+		}
 
-				        else if (Vfeedback < 0)
-				        {
+		else if (Vfeedback < 0)
+		{
 
-				        	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
-				        	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pwmM*-1);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pwmM*-1);
 				        }
 
 
 
 		//		        qei = PlantSimulation(Vfeeback);
 
-				        if ( i >= time_op*1000)
-				        {
-				        	__HAL_TIM_SET_COUNTER(&htim4, 0);
-				        	HAL_TIM_Base_Stop_IT(&htim4);
-				        	rou += 1;
-				        	i = 0;
-				        	buf[0] = 2;
-				        	L_State = updateLED(buf,&htim3,TIM_CHANNEL_2);
-				        	fin = 1;
+		if ( i >= time_op*1000)
+		{
+			__HAL_TIM_SET_COUNTER(&htim4, 0);
+
+			HAL_TIM_Base_Stop_IT(&htim4);
+			rou += 1;
+			i = 0;
+			buf[0] = 2;
+			L_State = updateLED(buf,&htim3,TIM_CHANNEL_2);
+			fin = 1;
 //				        	Vfeedback = 0;
 //
 //				        	total_displacement = 0;
@@ -1200,23 +1186,23 @@ void generate_Velocity()
 //
 //				        	pwmM = 0;
 
-				        	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 3000);
-				        	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 3000);
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
 
-				        }
+		}
 
 }
 
 float PlantSimulation(float VIn) // run with fix frequency
 {
-static float speed =0;
-static float qei =0;
-float current= VIn - speed * 0.0123;
-float torque = current * 0.456;
-float acc = torque * 0.789;
-speed += acc;
-qei += speed;
-return qei;
+	static float speed =0;
+	static float qei =0;
+	float current= VIn - speed * 0.0123;
+	float torque = current * 0.456;
+	float acc = torque * 0.789;
+	speed += acc;
+	qei += speed;
+	return qei;
 }
 
 //uint64_t micros()
@@ -1256,7 +1242,7 @@ void BaseAction(void){
 			  registerFrame[0x10].U16 = 1; //current state set shelf mode
 
 			  //delay 2000ms
-			 timestamp = HAL_GetTick()+2000;
+			 timestamp = HAL_GetTick()+1000;
 		  }
 		  if(registerFrame[0x10].U16 == 1 && flagShelf == 1)
 		  {
